@@ -1,0 +1,33 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/id/{{secondShortId}}
+method: GET
+scripts:
+  - type: afterResponse
+    code: |
+      const responseData = pm.response.json();
+      const responseSchema = {
+          "type": "object",
+          "properties": {
+              "url": {"type": "string"},
+          },
+          "required": ["url"],
+          "additionalProperties": false
+      };
+
+      pm.test("Статус-код ответа должен быть 200", function () {
+          pm.expect(
+              pm.response.code,
+              "Корректный запрос на получение оригинальной ссылки должен вернуть ответ с кодом 200"
+          ).to.be.eql(200);
+      });
+      pm.test("Структура ответа должна соответстовать ожидаемой", function () {
+          pm.response.to.have.jsonSchema(responseSchema);
+      });
+      pm.test("Ответ должен содержать полную ссылку", function () {
+          pm.expect(
+              responseData.url === pm.collectionVariables.get("secondLink"),
+              "Убедитесь, что поле `url` содержит первоначальную ссылку, соответствующую `short_id`"    
+          ).to.be.true;
+      });
+    language: text/javascript
+order: 2000

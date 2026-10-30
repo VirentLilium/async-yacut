@@ -1,0 +1,34 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/id/NonExistingShortId
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      const responseData = pm.response.json();
+      const responseSchema = {
+          "type": "object",
+          "properties": {
+              "message": {"type": "string"},
+          },
+          "required": ["message"],
+          "additionalProperties": false
+      };
+
+      pm.test("Статус-код ответа должен быть 404", function () {
+          pm.expect(
+              pm.response.code,
+              "Запрос на получение первоначальной ссылки с несуществующим `short_id` должен вернуть ответ с кодом 404"
+          ).to.be.eql(404);
+      });
+      pm.test("Структура ответа должна соответстовать ожидаемой", function () {
+          pm.response.to.have.jsonSchema(responseSchema);
+      });
+      pm.test("Сообщение об ошибке должно соответствовать документации", function () {
+          const error_message = responseData.message
+          pm.expect(
+              error_message === "Указанный id не найден",
+              "Убедитесь, что текст сообщения об ошибке соответствует спецификации"    
+          ).to.be.true;
+      });
+    language: text/javascript
+order: 1000

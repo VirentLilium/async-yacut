@@ -1,0 +1,15 @@
+# Use this workspace to collaborate
+workspace:
+  id: 25a471e1-6dd6-4631-b0ca-63a03f7a9d4f
+
+localResources:
+  collections:
+    - ../postman_collection/Yacut
+  specs:
+    - ../openapi.yml
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/Yacut: 51dcfe8a-1699-4b12-a01e-3bfc5da6de2d

@@ -1,0 +1,41 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/id/
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "url": "https://editor.swagger.io/",
+        "custom_id": "example"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      const responseData = pm.response.json();
+      const responseSchema = {
+          "type": "object",
+          "properties": {
+              "message": {"type": "string"},
+          },
+          "required": ["message"],
+          "additionalProperties": false
+      };
+
+      pm.test("Статус-код ответа должен быть 400", function () {
+          pm.expect(
+              pm.response.code,
+              "Запрос на создание короткой ссылки не содержащий тело запроса должен вернуть ответ с кодом 400"
+          ).to.be.eql(400);
+      });
+      pm.test("Структура ответа должна соответстовать ожидаемой", function () {
+          pm.response.to.have.jsonSchema(responseSchema);
+      });
+      pm.test("Сообщение об ошибке должно соответствовать документации", function () {
+          const error_message = responseData.message
+          pm.expect(
+              error_message === 'Предложенный вариант короткой ссылки уже существует.',
+              "Убедитесь, что текст сообщения об ошибке соответствует спецификации"    
+          ).to.be.true;
+      });
+    language: text/javascript
+order: 4000

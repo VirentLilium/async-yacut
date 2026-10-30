@@ -1,0 +1,10 @@
+$kind: collection
+description: ""
+variables:
+  baseUrl: http://127.0.0.1:5000
+  firstLink: https://flask.palletsprojects.com/en/2.3.x/blueprints/
+  secondLink: https://peps.python.org/pep-0008/
+  ormAddedLink: https://example.com/
+  ormAddedShortID: example
+  firstShortId: ""
+  secondShortId: ""

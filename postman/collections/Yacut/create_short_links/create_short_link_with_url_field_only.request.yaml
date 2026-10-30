@@ -1,0 +1,40 @@
+$kind: http-request
+url: http://127.0.0.1:5000/api/id/
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "url": "{{firstLink}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      const responseData = pm.response.json();
+      const responseSchema = {
+          "type": "object",
+          "properties": {
+              "url": {"type": "string"},
+              "short_link": {"type": "string"}
+          },
+          "required": ["url", "short_link"],
+          "additionalProperties": false
+      };
+
+      pm.test("Статус-код ответа должен быть 201", function () {
+          pm.expect(
+              pm.response.code,
+              "Запрос на создание короткой ссылки без поля `custom_id` должен вернуть ответ с кодом 201"
+          ).to.be.eql(201);
+          var short_link = _.get(responseData, "short_link");
+          if (short_link) {
+              short_link = short_link.replace(/\/+$/, "");
+              short_link = short_link.replace(/http:\/\/127.0.0.1:5000\//, "")
+              pm.collectionVariables.set("firstShortId", short_link);
+          }
+      });
+      pm.test("Структура ответа должна соответстовать ожидаемой", function () {
+          pm.response.to.have.jsonSchema(responseSchema);
+      });
+    language: text/javascript
+order: 1000
