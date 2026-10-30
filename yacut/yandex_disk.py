@@ -56,7 +56,7 @@ async def upload_file_and_get_url(session, file):
 
     async with session.put(
         url=upload_url,
-        data=file.stream,
+        data=file.read(),
     ) as response:
         response.raise_for_status()
 
