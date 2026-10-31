@@ -7,7 +7,7 @@ from yacut.constants import (
 )
 
 
-def is_valid_short_id(short_id):
+def is_valid_short_id(short_id: str) -> bool:
     """
     Проверяет длину и допустимые символы короткого идентификатора.
 
