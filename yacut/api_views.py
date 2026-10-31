@@ -1,17 +1,19 @@
-from flask import jsonify, request, url_for
+from http import HTTPStatus
 
-from yacut import app, db
+from flask import Response, jsonify, request
+
+from yacut import app
 from yacut.error_handlers import InvalidAPIUsage
+from yacut.exceptions import ShortLinkError
 from yacut.models import URLMap
-from yacut.utils import get_unique_short_id, is_valid_short_id
 
 
 @app.route('/api/id/', methods=['POST'])
-def create_short_link():
+def create_short_link() -> tuple[Response, int]:
     """
     Создаёт короткую ссылку через API.
 
-    :return: JSON с исходным и коротким URL, HTTP 201.
+    :return: JSON с исходным и коротким URL, HTTP 201 Created.
     :raises InvalidAPIUsage: При некорректных данных запроса.
     """
     data = request.get_json(silent=True)
@@ -24,35 +26,17 @@ def create_short_link():
         raise InvalidAPIUsage('"url" является обязательным полем!')
 
     custom_id = data.get('custom_id')
-    if custom_id is None or custom_id == '':
-        short_id = get_unique_short_id()
-    elif not is_valid_short_id(custom_id):
-        raise InvalidAPIUsage('Указано недопустимое имя для короткой ссылки')
-    elif (
-        URLMap.query.filter_by(short=custom_id).first() is not None
-        or custom_id == 'files'
-    ):
-        raise InvalidAPIUsage(
-            'Предложенный вариант короткой ссылки уже существует.'
-        )
-    else:
-        short_id = custom_id
 
-    link_object = URLMap(original=url, short=short_id)
-    db.session.add(link_object)
-    db.session.commit()
-    return jsonify(
-        {
-            'url': link_object.original,
-            'short_link': url_for(
-                'redirect_view', short_id=link_object.short, _external=True
-            ),
-        }
-    ), 201
+    try:
+        link_object = URLMap.create_short_link(url, custom_id)
+    except ShortLinkError as error:
+        raise InvalidAPIUsage(str(error)) from error
+
+    return jsonify(link_object.to_dict()), HTTPStatus.CREATED
 
 
 @app.route('/api/id/<string:short_id>/', methods=['GET'])
-def get_original_link(short_id):
+def get_original_link(short_id: str) -> Response:
     """
     Возвращает исходный URL по короткому идентификатору.
 
@@ -60,7 +44,9 @@ def get_original_link(short_id):
     :return: JSON с исходным URL, HTTP 200.
     :raises InvalidAPIUsage: Если идентификатор не найден.
     """
-    link_object = URLMap.query.filter_by(short=short_id).first()
-    if not link_object:
-        raise InvalidAPIUsage('Указанный id не найден', 404)
-    return jsonify({'url': link_object.original}), 200
+    link_object = URLMap.get_by_short_id(short_id)
+
+    if link_object is None:
+        raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
+
+    return jsonify({'url': link_object.original})
