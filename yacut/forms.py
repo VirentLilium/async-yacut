@@ -9,6 +9,8 @@ from wtforms.validators import (
     Regexp,
 )
 
+from yacut.constants import MAX_LENGTH_OF_SHORT_ID, SHORT_ID_PATTERN
+
 
 class LinkForm(FlaskForm):
     """Форма для ввода ссылок."""
@@ -24,8 +26,8 @@ class LinkForm(FlaskForm):
         'Ваш вариант короткой ссылки',
         validators=[
             Optional(),
-            Length(max=16),
-            Regexp(r'^[a-zA-Z0-9]+$'),
+            Length(max=MAX_LENGTH_OF_SHORT_ID),
+            Regexp(SHORT_ID_PATTERN),
         ],
     )
     submit = SubmitField('Создать')
