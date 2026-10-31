@@ -2,21 +2,17 @@ import asyncio
 from uuid import uuid4
 
 import aiohttp
+from werkzeug.datastructures import FileStorage
 
 from yacut import app
+from yacut.constants import DOWNLOAD_LINK_URL, REQUEST_UPLOAD_URL
 
-DISK_TOKEN = app.config['DISK_TOKEN']
-
-AUTH_HEADER = {'Authorization': f'OAuth {DISK_TOKEN}'}
-
-API_HOST = 'https://cloud-api.yandex.net/'
-API_VERSION = 'v1'
-
-REQUEST_UPLOAD_URL = f'{API_HOST}{API_VERSION}/disk/resources/upload'
-DOWNLOAD_LINK_URL = f'{API_HOST}{API_VERSION}/disk/resources/download'
+AUTH_HEADER = {'Authorization': f'OAuth {app.config["DISK_TOKEN"]}'}
 
 
-async def async_upload_file_and_get_url(files):
+async def async_upload_file_and_get_url(
+    files: list[FileStorage],
+) -> list[str]:
     """
     Асинхронная функция конкурентно загружает файлы на Яндекс Диск.
 
@@ -30,7 +26,10 @@ async def async_upload_file_and_get_url(files):
     return download_urls
 
 
-async def upload_file_and_get_url(session, file):
+async def upload_file_and_get_url(
+    session: aiohttp.ClientSession,
+    file: FileStorage,
+) -> str:
     """
     Загружает один файл и возвращает URL для скачивания.
 
