@@ -13,7 +13,7 @@ from yacut.constants import (
     MAX_LENGTH_OF_SHORT_ID,
     MAX_REPETITIONS,
 )
-from yacut.exceptions import ShortLinkError
+from yacut.exceptions import ExcessRepetitionError, ShortLinkError
 from yacut.utils import is_valid_short_id
 
 
@@ -67,7 +67,7 @@ class URLMap(db.Model):
                 and short_id not in FORBIDDEN_SHORT_ID
             ):
                 return short_id
-        raise RuntimeError(
+        raise ExcessRepetitionError(
             'Не удалось сгенерировать уникальный короткий идентификатор.'
         )
 
